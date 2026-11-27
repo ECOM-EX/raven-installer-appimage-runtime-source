@@ -1,26 +1,30 @@
-# type2-runtime ![GitHub Actions](https://github.com/AppImage/type2-runtime/actions/workflows/build.yaml/badge.svg)
+# AppImage runtime source used by Raven Installer
 
-The runtime is the executable part of every AppImage. It mounts the payload via FUSE and executes the entrypoint.
+Every AppImage made with **Raven Installer** (by ECOM Extensions Pty Ltd) starts with the
+AppImage type 2 runtime, unmodified, built from this exact source:
 
-This repository builds a statically linked runtime for type-2 AppImages in a [Alpine Linux](https://alpinelinux.org/) chroot with [musl libc](https://www.musl-libc.org/).
+- **AppImage type 2 runtime**, commit [`fedfad5`](https://github.com/AppImage/type2-runtime/commit/fedfad51acc2860b2916a1eef32ba4a500ff31ef) (MIT, see `LICENSE`).
+  This repository is that commit with its full history, plus the folder `third-party-source/`.
+  The upstream README is in `README-upstream.md`.
+- **libfuse 3.15.0** (GNU Lesser General Public License 2.1), statically linked into the runtime.
+  Source: `third-party-source/fuse-3.15.0.tar.xz`. The runtime build applies
+  `patches/libfuse/mount.c.diff` to it.
+- **squashfuse 0.5.2** (BSD-2-Clause): `third-party-source/squashfuse-0.5.2.tar.gz`.
+- musl libc, zlib and zstd come from Alpine Linux packages during the build (see
+  `scripts/docker/Dockerfile` and `scripts/chroot/`).
 
-Since the runtime is linked statically, libfuse2 is no longer required on the target system.
+Checksums are in `third-party-source/SHA256SUMS`. They match the ones checked by
+`scripts/common/install-dependencies.sh`.
 
-## Notes for users
+## Rebuilding the runtime, for example with a changed libfuse
 
-As an AppImage user, you do not need this repository, as the AppImage runtime is embedded into every AppImage.
+Follow `README-upstream.md` (`scripts/docker/build-with-docker.sh` or `scripts/chroot/build.sh`).
+To use your own libfuse, change `scripts/common/install-dependencies.sh` to unpack your copy
+instead of downloading `fuse-3.15.0.tar.xz`. The result can replace the first part of any
+AppImage made with Raven Installer: the runtime is a separate program placed in front of the
+app's file system and is not linked with the app.
 
-## Notes for developers
+## Which Raven Installer versions use this
 
-__Please note:__ This repository is meant to be extremely simple.
-
-* Do NOT add additional external dependencies or files. Everything shall be implemented in one file. `runtime.c`  
-* Do NOT add a complicated "build system" (like autotools, CMake,...) other than the existing simple Makefile and bash
-
-Binaries are provided on GitHub Releases. 
-
-**Please see [BUILD.md](BUILD.md) if you want to build the runtime yourself.**
-
-## Signing
-
-Release builds are signed automatically using GnuPG. The corresponding public key can be found in the file `signing-pubkey.asc`.
+Raven Installer 0.1.x. This repository is kept online for as long as Raven Installer ships this
+runtime, and for at least three years after the last release that does.
